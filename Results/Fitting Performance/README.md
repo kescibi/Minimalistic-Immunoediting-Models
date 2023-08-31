@@ -1,5 +1,7 @@
 # Fitting Performance
 
+Fitting performance for all 186 patients presented analogously to Figure 6 in the paper.
+
 <p align="center">
   <img src="./fitting_1.png">
   <img src="./fitting_2.png">
