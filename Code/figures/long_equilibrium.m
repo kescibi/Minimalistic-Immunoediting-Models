@@ -22,19 +22,6 @@ legend('T: Total tumor mass', 'Location', 'best');
 
 function dydt = calcdy(r,mu_1,t,y)
     dydt = zeros(2,1);
-%     if t < 12
-%         mu_1 = 0;
-%         y(2) = 0;
-%     else
-%         %mu_1 = 0.9*1.3*((sin(2*(t-12))+1)/2);
-%     end
-
-%     for i=2:18
-%         if t > 4*i && t < (4*i)+0.8
-%             mu_1 = 2*mu_1;
-%         end
-%     end
-
     dydt(1) = r * y(1) * (1 - (y(1)+y(2))) - mu_1 * y(1);
     dydt(2) = r * y(2) * (1 - (y(1)+y(2)));
 end
