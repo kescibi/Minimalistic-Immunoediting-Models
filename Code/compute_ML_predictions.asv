@@ -1,0 +1,44 @@
+function [predictions_interpolated, predictions_padded] = compute_ML_predictions(t, y, Y)
+    % t: time, y: tumor size, Y: label (PD or not PD)
+    % Creates dataset by padding and interpolation, then uses fitcauto to find best model
+
+    N = length(Y); % Number of patients
+    max_length = 0;
+    for i = 1:N
+        max_length = max(max_length, length(t{i}));
+        max_length = max(max_length, length(y{i}));
+    end
+
+    X_interpolated = zeros(N, 2 * max_length);
+    X_padded = zeros(N, 2 * max_length);
+    
+    for i = 1:N
+        t_interp = interp1(1:length(t{i}), t{i}, linspace(1, length(t{i}), max_length), 'linear');
+        X_interpolated(i, 1:max_length) = t_interp;
+        y_interp = interp1(1:length(y{i}), y{i}, linspace(1, length(y{i}), max_length), 'nearest');
+        X_interpolated(i, max_length+1:2*max_length) = y_interp;
+
+        % Zero-padding for t and y
+        t_padded = [t{i}, zeros(1, max_length - length(t{i}))];
+        X_padded(i, 1:max_length) = t_padded;
+        y_padded = [y{i}, zeros(1, max_length - length(y{i}))];
+        X_padded(i, max_length+1:2*max_length) = y_padded;
+    end
+
+    c = cvpartition(Y, 'KFold', 5);
+    predictions_interpolated = zeros(size(Y));
+    predictions_padded = zeros(size(Y));
+
+    for i = 1:c.NumTestSets
+        trainIdx = training(c, i);
+        testIdx = test(c, i);
+
+        % Training and predicting with interpolated data
+        model_interpolated = fitcauto(X_interpolated(trainIdx, :), Y(trainIdx));
+        predictions_interpolated(testIdx) = predict(model_interpolated, X_interpolated(testIdx, :));
+
+        % Training and predicting with padded data
+        model_padded = fitcauto(X_padded(trainIdx, :), Y(trainIdx));
+        predictions_padded(testIdx) = predict(model_padded, X_padded(testIdx, :));
+    end
+end
